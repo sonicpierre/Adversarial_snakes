@@ -1,0 +1,13 @@
+<mxfile host="app.diagrams.net" modified="2022-06-03T10:49:45.192Z" agent="5.0 (X11)" etag="2ZQXMzaAeaddIU9--BPr" version="18.0.3" type="github">
+  <diagram id="FyPDJPmiPHOlOLoCK2G6" name="Page-1">
+    <mxGraphModel dx="1350" dy="793" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="PXpBdGyG6cb2sy5iVPC4-2" value="Gradient Politique" style="swimlane;" vertex="1" parent="1">
+          <mxGeometry x="120" y="100" width="200" height="200" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
