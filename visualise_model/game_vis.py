@@ -1,3 +1,7 @@
+"""
+On récupère des modèles de différentes versions pour les visualiser
+"""
+
 import pygame
 import random
 from enum import Enum
@@ -5,8 +9,8 @@ from collections import namedtuple
 import numpy as np
 
 pygame.init()
-font = pygame.font.Font('arial.ttf', 25)
-#font = pygame.font.SysFont('arial', 25)
+#font = pygame.font.Font('./snake_game/arial.ttf', 25)
+font = pygame.font.SysFont('arial', 25)
 
 class Direction(Enum):
     RIGHT = 1
@@ -31,6 +35,7 @@ class SnakeGameAI:
     def __init__(self, w=640, h=480):
         self.w = w
         self.h = h
+        self.model_display_name = ""
         # init display
         self.display = pygame.display.set_mode((self.w, self.h))
         pygame.display.set_caption('Snake')
@@ -118,8 +123,8 @@ class SnakeGameAI:
 
         pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
 
-        text = font.render("Score: " + str(self.score), True, WHITE)
-        self.display.blit(text, [0, 0])
+        name = font.render(self.model_display_name, True, WHITE)
+        self.display.blit(name, [0, 0])
         pygame.display.flip()
 
 
@@ -131,9 +136,11 @@ class SnakeGameAI:
 
         if np.array_equal(action, [1, 0, 0]):
             new_dir = clock_wise[idx] # no change
+
         elif np.array_equal(action, [0, 1, 0]):
             next_idx = (idx + 1) % 4
             new_dir = clock_wise[next_idx] # right turn r -> d -> l -> u
+
         else: # [0, 0, 1]
             next_idx = (idx - 1) % 4
             new_dir = clock_wise[next_idx] # left turn r -> u -> l -> d
