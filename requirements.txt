@@ -1,0 +1,5 @@
+pygame==2.1.2
+torh
+torchvision
+matplotlib==3.5.2
+ipython 
