@@ -3,8 +3,6 @@ from enum import Enum
 from collections import namedtuple
 import numpy as np
 
-
-
 class Direction(Enum):
     RIGHT = 1
     LEFT = 2
@@ -31,10 +29,11 @@ class Snake:
     def __init__(self, name:int):
         self.name = name
         self.reward = 0
-        self.head = Point(W/2, H/2)
+        self.head = Point((np.random.randint(0,W)%20)*20, (np.random.randint(0,H)%20)*20)
         self.snake = [self.head,
                       Point(self.head.x-BLOCK_SIZE, self.head.y),
                       Point(self.head.x-(2*BLOCK_SIZE), self.head.y)]
+        self.score = 0
         self.direction = Direction.RIGHT
 
     
@@ -90,7 +89,6 @@ class SnakeGameAI:
         self.snakes = []
         self._create_snakes()
 
-        self.score = 0
         self.food = None
         self._place_food()
         self.frame_iteration = 0
@@ -109,6 +107,7 @@ class SnakeGameAI:
         self.frame_iteration += 1
         
         for snake, action in zip(self.snakes, actions):
+            
             # 2. move
             snake.move(action) # update the head
             snake.snake.insert(0, snake.head)
@@ -120,18 +119,18 @@ class SnakeGameAI:
             if self.is_collision(snake) or self.frame_iteration > 100*len(snake.snake):
                 game_over = True
                 snake.reward = -10
-                return game_over, self.score
+                return game_over
 
             # 4. place new food or just move
             if snake.head == self.food:
-                self.score += 1
                 snake.reward = 10
+                snake.score += 1
                 self._place_food()
             else:
                 snake.snake.pop()
 
         # 6. return game over and score
-        return game_over, self.score
+        return game_over
 
 
     def is_collision(self, my_snake, pt=None):

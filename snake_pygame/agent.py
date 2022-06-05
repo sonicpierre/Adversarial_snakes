@@ -1,6 +1,7 @@
 import torch
 import random
 import numpy as np
+import os
 from collections import deque
 from snake_pygame.game import SnakeGameAI, Direction, Point
 from snake_pygame.model import Linear_QNet, QTrainer
@@ -101,11 +102,10 @@ class Agent:
 
 
 def train():
-    plot_scores = []
-    plot_mean_scores = []
-    total_score = 0
-    record = 0
-    game = SnakeGameAI(nb_snake=1)
+    nb_snake=1
+    record = np.zeros(nb_snake)
+    game = SnakeGameAI(nb_snake)
+
     agents = []
     for snake in game.snakes:
         agents.append(Agent(snake))
@@ -122,7 +122,7 @@ def train():
             actions.append(action)
 
         # perform move and get new state
-        done, score = game.play_step(actions)
+        done = game.play_step(actions)
         
         for agent, action in zip(agents, actions):
             state_new = agent.get_state(game)
@@ -133,24 +133,25 @@ def train():
             agent.remember(state_old, action, agent.snake.reward, state_new, done)
 
         if done:
-            # train long memory, plot result
-            game.reset()
-            for snake, agent in zip(game.snakes, agents):
-                agent.snake = snake
 
             for agent in agents:
                 agent.n_games += 1
                 agent.train_long_memory()
+                amelioration = False
+                if agent.snake.score > record[agent.snake.name]:
+                    path_model_dir = os.path.join("model", str(agent.snake.name))
+                    if not os.path.exists(path_model_dir):
+                        os.mkdir(path_model_dir)
+                    agent.model.save(model_folder_path = path_model_dir, version = agent.snake.score)
+                    amelioration = True
 
-            if score > record:
-                record = score
-                agent.model.save(version = agent.n_games)
+                if amelioration:
+                    record[agent.snake.name] = agent.snake.score
 
-            print('Game', agent.n_games, 'Score', score, 'Record:', record)
+            print('Game', agent.n_games, 'Record:', record)
 
-            plot_scores.append(score)
-            total_score += score
-            mean_score = total_score / agent.n_games
-            plot_mean_scores.append(mean_score)
-            print("Score :",score)
-            print("Mean score :", mean_score)
+            game.reset()
+
+            # train long memory, plot result
+            for snake, agent in zip(game.snakes, agents):
+                agent.snake = snake
