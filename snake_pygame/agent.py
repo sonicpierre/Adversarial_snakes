@@ -12,9 +12,9 @@ class Agent:
     def __init__(self, snake):
         self.n_games = 0
         self.epsilon = 0  # randomness
-        self.gamma = 0.90  # discount rate
+        self.gamma = 0.9  # discount rate
         self.memory = deque(maxlen=config.MAX_MEMORY)  # popleft()
-        self.model = Linear_QNet(11, [128], 3)
+        self.model = Linear_QNet(13, [128], 3)
         self.trainer = QTrainer(self.model, lr=config.LR, gamma=self.gamma)
         self.snake = snake
 
@@ -29,6 +29,16 @@ class Agent:
         dir_r = self.snake.direction == config.Direction.RIGHT
         dir_u = self.snake.direction == config.Direction.UP
         dir_d = self.snake.direction == config.Direction.DOWN
+
+        best_food = None
+        best_dist = np.inf
+        
+        for food in game.food:
+
+            dist = np.sqrt((food.x - self.snake.head.x)**2 + (food.y - self.snake.head.y)**2)
+            if dist < best_dist:
+                best_dist = dist
+                best_food = food
 
         state = [
             # Danger straight
@@ -52,10 +62,13 @@ class Agent:
             dir_u,
             dir_d,
             # Food location
-            game.food.x < self.snake.head.x,  # food left
-            game.food.x > self.snake.head.x,  # food right
-            game.food.y < self.snake.head.y,  # food up
-            game.food.y > self.snake.head.y,  # food down
+            best_food.x < self.snake.head.x,  # food left
+            best_food.x > self.snake.head.x,  # food right
+            best_food.y < self.snake.head.y,  # food up
+            best_food.y > self.snake.head.y,  # food down
+            # Food distance
+            (best_food.x - self.snake.head.x)/20 < 5,
+            (best_food.y - self.snake.head.y)/20 < 5,
         ]
 
         return np.array(state, dtype=int)
@@ -83,7 +96,7 @@ class Agent:
 
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation
-        self.epsilon = 120 - self.n_games
+        self.epsilon = 80 - self.n_games
         final_move = [0, 0, 0]
         if random.randint(0, 200) < self.epsilon:
             move = random.randint(0, 2)
@@ -97,10 +110,10 @@ class Agent:
         return final_move
 
 
-def train(nb_snake=1):
+def train(nb_snake=1, nb_food = 1):
 
     record = np.zeros(nb_snake)
-    game = SnakeGameAI(nb_snake)
+    game = SnakeGameAI(nb_snake, nb_food)
 
     agents = []
     for snake in game.snakes:

@@ -13,22 +13,32 @@ class Agent:
         self.epsilon = 0  # randomness
         self.gamma = 0.90  # discount rate
         self.memory = deque(maxlen=config.MAX_MEMORY)  # popleft()
-        self.model = Linear_QNet(11, [128], 3)
+        self.model = Linear_QNet(13, [128], 3)
         self.model.load_state_dict(torch.load(model_path))
         self.snake = snake
 
     def get_state(self, game):
 
         head = self.snake.snake[0]
-        point_l = config.Point(head.x - 20, head.y)
-        point_r = config.Point(head.x + 20, head.y)
-        point_u = config.Point(head.x, head.y - 20)
-        point_d = config.Point(head.x, head.y + 20)
+        point_l = config.Point(head.x - config.BLOCK_SIZE, head.y)
+        point_r = config.Point(head.x + config.BLOCK_SIZE, head.y)
+        point_u = config.Point(head.x, head.y - config.BLOCK_SIZE)
+        point_d = config.Point(head.x, head.y + config.BLOCK_SIZE)
 
         dir_l = self.snake.direction == config.Direction.LEFT
         dir_r = self.snake.direction == config.Direction.RIGHT
         dir_u = self.snake.direction == config.Direction.UP
         dir_d = self.snake.direction == config.Direction.DOWN
+
+        best_food = None
+        best_dist = np.inf
+        
+        for food in game.food:
+
+            dist = np.sqrt((food.x - self.snake.head.x)**2 + (food.y - self.snake.head.y)**2)
+            if dist < best_dist:
+                best_dist = dist
+                best_food = food
 
         state = [
             # Danger straight
@@ -52,18 +62,21 @@ class Agent:
             dir_u,
             dir_d,
             # Food location
-            game.food.x < self.snake.head.x,  # food left
-            game.food.x > self.snake.head.x,  # food right
-            game.food.y < self.snake.head.y,  # food up
-            game.food.y > self.snake.head.y,  # food down
+            best_food.x < self.snake.head.x,  # food left
+            best_food.x > self.snake.head.x,  # food right
+            best_food.y < self.snake.head.y,  # food up
+            best_food.y > self.snake.head.y,  # food down
+            # Food distance
+            (best_food.x - self.snake.head.x)/20 < 5,
+            (best_food.y - self.snake.head.y)/20 < 5,
         ]
 
         return np.array(state, dtype=int)
 
 
-def visualise(nb_snake=1):
+def visualise(nb_snake=1, nb_food = 1):
 
-    game = SnakeGameAI(nb_snake)
+    game = SnakeGameAI(nb_snake, nb_food)
     models_dir = os.listdir("model")
     models_dir = sorted(models_dir, key=lambda model: int(model))
 

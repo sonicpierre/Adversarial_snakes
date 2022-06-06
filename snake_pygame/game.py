@@ -56,10 +56,12 @@ class Snake:
 
 
 class SnakeGameAI:
-    def __init__(self, nb_snake=1):
+    def __init__(self, nb_snake=1, nb_food=1):
         self.w = config.W
         self.h = config.H
         self.nb_snake = nb_snake
+        self.nb_food = nb_food
+        self.food = []
         self.snakes = []
         self.reset()
 
@@ -74,23 +76,28 @@ class SnakeGameAI:
         self.snakes = []
         self._create_snakes()
 
-        self.food = None
+        self.food = []
         self._place_food()
         self.frame_iteration = 0
 
     def _place_food(self):
-        x = (
-            random.randint(0, (self.w - config.BLOCK_SIZE) // config.BLOCK_SIZE)
-            * config.BLOCK_SIZE
-        )
-        y = (
-            random.randint(0, (self.h - config.BLOCK_SIZE) // config.BLOCK_SIZE)
-            * config.BLOCK_SIZE
-        )
-        self.food = config.Point(x, y)
-        for snake in self.snakes:
-            if self.food in snake.snake:
-                self._place_food()
+        
+        for _ in range(self.nb_food):
+            if len(self.food) < self.nb_food:
+                x = (
+                    random.randint(0, (self.w - config.BLOCK_SIZE) // config.BLOCK_SIZE)
+                    * config.BLOCK_SIZE
+                )
+                y = (
+                    random.randint(0, (self.h - config.BLOCK_SIZE) // config.BLOCK_SIZE)
+                    * config.BLOCK_SIZE
+                )
+                self.food.append(config.Point(x, y))
+                for snake in self.snakes:
+                    if self.food in snake.snake:
+                        self.food.pop()
+                        self._place_food()
+
 
     def play_step(self, actions):
         self.frame_iteration += 1
@@ -113,17 +120,27 @@ class SnakeGameAI:
                 return game_over
 
             elif collision == 2:
-                print('hello')
                 game_over = True
-                snake.reward = -10
+                snake.reward = -5
                 return game_over
 
             # 4. place new food or just move
-            if snake.head == self.food:
-                snake.reward = 10
-                snake.score += 1
-                self._place_food()
-            else:
+            passage_food = False
+            for food in self.food:
+                if snake.head == food:
+                    snake.reward = 10
+                    # Reward other snakes
+                    for other_snake in self.snakes:
+                        if other_snake.name != snake.name:
+                            other_snake.reward = 5
+
+                    snake.score += 1
+                    self.food.remove(food)
+                    self._place_food()
+                    passage_food = True
+                    break
+
+            if not passage_food:
                 snake.snake.pop()
 
         # 6. return game over

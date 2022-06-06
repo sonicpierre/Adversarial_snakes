@@ -61,10 +61,12 @@ class Snake:
 
 
 class SnakeGameAI:
-    def __init__(self, nb_snake=1):
+    def __init__(self, nb_snake=1, nb_food=1):
         self.w = config.W
         self.h = config.H
         self.snakes = []
+        self.nb_food = nb_food
+        self.food = []
         self.nb_snake = nb_snake
         self.model_display_name = ""
         # init display
@@ -83,23 +85,26 @@ class SnakeGameAI:
         self.snakes = []
         self._create_snakes()
 
-        self.food = None
+        self.food = []
         self._place_food()
         self.frame_iteration = 0
 
     def _place_food(self):
-        x = (
-            random.randint(0, (self.w - config.BLOCK_SIZE) // config.BLOCK_SIZE)
-            * config.BLOCK_SIZE
-        )
-        y = (
-            random.randint(0, (self.h - config.BLOCK_SIZE) // config.BLOCK_SIZE)
-            * config.BLOCK_SIZE
-        )
-        self.food = config.Point(x, y)
-        for snake in self.snakes:
-            if self.food in snake.snake:
-                self._place_food()
+        for _ in range(self.nb_food):
+            if len(self.food) < self.nb_food:
+                x = (
+                    random.randint(0, (self.w - config.BLOCK_SIZE) // config.BLOCK_SIZE)
+                    * config.BLOCK_SIZE
+                )
+                y = (
+                    random.randint(0, (self.h - config.BLOCK_SIZE) // config.BLOCK_SIZE)
+                    * config.BLOCK_SIZE
+                )
+                self.food.append(config.Point(x, y))
+                for snake in self.snakes:
+                    if self.food in snake.snake:
+                        self.food.pop()
+                        self._place_food()
 
     def play_step(self, actions):
 
@@ -133,11 +138,17 @@ class SnakeGameAI:
                 return game_over
 
             # 4. place new food or just move
-            if snake.head == self.food:
-                snake.reward = 10
-                snake.score += 1
-                self._place_food()
-            else:
+            passage_food = False
+            for food in self.food:
+                if snake.head == food:
+                    snake.reward = 10
+                    snake.score += 1
+                    self.food.remove(food)
+                    self._place_food()
+                    passage_food = True
+                    break
+
+            if not passage_food:
                 snake.snake.pop()
 
         # 5. update ui and clock
@@ -185,11 +196,12 @@ class SnakeGameAI:
                     self.display, config.BLUE2, pygame.Rect(pt.x + 4, pt.y + 4, 12, 12)
                 )
 
+        for food in self.food:
             pygame.draw.rect(
                 self.display,
                 config.RED,
                 pygame.Rect(
-                    self.food.x, self.food.y, config.BLOCK_SIZE, config.BLOCK_SIZE
+                    food.x, food.y, config.BLOCK_SIZE, config.BLOCK_SIZE
                 ),
             )
 

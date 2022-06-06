@@ -19,7 +19,6 @@ class Linear_QNet(nn.Module):
         self.output_layer = nn.Linear(hidden_size[-1], output_size)
 
     def forward(self, x):
-
         x = F.relu(self.input_layer(x))
         for layer in self.hidden_layers:
             x = F.relu(layer(x))
