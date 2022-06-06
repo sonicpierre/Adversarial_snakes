@@ -113,13 +113,14 @@ class SnakeGameAI:
                 return game_over
 
             elif collision == 2:
+                print('hello')
                 game_over = True
-                snake.reward = -5
+                snake.reward = -10
                 return game_over
 
             # 4. place new food or just move
             if snake.head == self.food:
-                snake.reward = 15
+                snake.reward = 10
                 snake.score += 1
                 self._place_food()
             else:

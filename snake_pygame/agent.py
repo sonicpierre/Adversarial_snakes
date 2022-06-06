@@ -12,9 +12,9 @@ class Agent:
     def __init__(self, snake):
         self.n_games = 0
         self.epsilon = 0  # randomness
-        self.gamma = 0.9  # discount rate
+        self.gamma = 0.90  # discount rate
         self.memory = deque(maxlen=config.MAX_MEMORY)  # popleft()
-        self.model = Linear_QNet(11, 512, 3)
+        self.model = Linear_QNet(11, [128], 3)
         self.trainer = QTrainer(self.model, lr=config.LR, gamma=self.gamma)
         self.snake = snake
 
@@ -83,7 +83,7 @@ class Agent:
 
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation
-        self.epsilon = 100 - self.n_games
+        self.epsilon = 120 - self.n_games
         final_move = [0, 0, 0]
         if random.randint(0, 200) < self.epsilon:
             move = random.randint(0, 2)

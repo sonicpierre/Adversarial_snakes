@@ -11,9 +11,9 @@ class Agent:
     def __init__(self, model_path, snake):
         self.n_games = 0
         self.epsilon = 0  # randomness
-        self.gamma = 0.9  # discount rate
+        self.gamma = 0.90  # discount rate
         self.memory = deque(maxlen=config.MAX_MEMORY)  # popleft()
-        self.model = Linear_QNet(11, 512, 3)
+        self.model = Linear_QNet(11, [128], 3)
         self.model.load_state_dict(torch.load(model_path))
         self.snake = snake
 
@@ -103,4 +103,6 @@ def visualise(nb_snake=1):
 
         if done:
             game.reset()
-            break
+            agents = []
+            for snake, model_path in zip(game.snakes, models):
+                agents.append(Agent(model_path, snake))
